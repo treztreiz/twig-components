@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace TwigComponents;
 
-use Twig\Error\SyntaxError;
 use function count;
 use function in_array;
 use function sprintf;
 use function strlen;
+
+use Twig\Error\SyntaxError;
 
 /**
  * Transforms <twig:name .../> and <twig:name>...</twig:name> syntax into
@@ -32,7 +33,9 @@ final class PreLexer
     /** @var array<array{name: string, hasDefaultBlock: bool, isBlock: bool}> */
     private array $componentStack;
 
-    public function __construct(private readonly ComponentConfig $config = new ComponentConfig()) {}
+    public function __construct(private readonly ComponentConfig $config = new ComponentConfig())
+    {
+    }
 
     /**
      * @throws SyntaxError
@@ -93,7 +96,7 @@ final class PreLexer
         }
 
         if (!empty($this->componentStack)) {
-            $last = end($this->componentStack);
+            $last = $this->componentStack[count($this->componentStack) - 1];
             throw new SyntaxError(
                 sprintf(
                     'Expected closing tag </twig:%s> but reached end of input.',
@@ -349,6 +352,7 @@ final class PreLexer
     }
 
     /**
+     * @param list<string>|string|null $valid
      * @throws SyntaxError
      */
     private function consumeChar(array|string|null $valid = null): string
@@ -404,7 +408,7 @@ final class PreLexer
         if ($this->position >= $this->length) {
             throw new SyntaxError(
                 sprintf("Expected '%s' but reached end of input.", $char),
-                $this->line
+                $this->line,
             );
         }
 

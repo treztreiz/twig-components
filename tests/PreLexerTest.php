@@ -19,65 +19,65 @@ final class PreLexerTest extends TestCase
 
     // --- existing spike tests (must all still pass) ---
 
-    public function testSelfClosingNoProps(): void
+    public function test_self_closing_no_props(): void
     {
         $result = $this->preLexer->transform('<twig:alert />');
 
-        $this->assertSame("{{ component('alert', {}) }}", $result);
+        self::assertSame("{{ component('alert', {}) }}", $result);
     }
 
-    public function testSelfClosingOneProp(): void
+    public function test_self_closing_one_prop(): void
     {
         $result = $this->preLexer->transform('<twig:alert message="Saved!" />');
 
-        $this->assertSame("{{ component('alert', { message: 'Saved!' }) }}", $result);
+        self::assertSame("{{ component('alert', { message: 'Saved!' }) }}", $result);
     }
 
-    public function testSelfClosingMultipleProps(): void
+    public function test_self_closing_multiple_props(): void
     {
         $result = $this->preLexer->transform('<twig:button variant="primary" label="Click" />');
 
-        $this->assertSame("{{ component('button', { variant: 'primary', label: 'Click' }) }}", $result);
+        self::assertSame("{{ component('button', { variant: 'primary', label: 'Click' }) }}", $result);
     }
 
-    public function testKebabTagName(): void
+    public function test_kebab_tag_name(): void
     {
         $result = $this->preLexer->transform('<twig:my-card title="Hello" />');
 
-        $this->assertSame("{{ component('my-card', { title: 'Hello' }) }}", $result);
+        self::assertSame("{{ component('my-card', { title: 'Hello' }) }}", $result);
     }
 
-    public function testSingleQuoteInPropValueIsEscaped(): void
+    public function test_single_quote_in_prop_value_is_escaped(): void
     {
         $result = $this->preLexer->transform('<twig:alert message="it\'s fine" />');
 
-        $this->assertSame("{{ component('alert', { message: 'it\\'s fine' }) }}", $result);
+        self::assertSame("{{ component('alert', { message: 'it\\'s fine' }) }}", $result);
     }
 
-    public function testNonMatchingTagsAreLeftUntouched(): void
+    public function test_non_matching_tags_are_left_untouched(): void
     {
         $source = '<div class="alert">hello</div>';
 
-        $this->assertSame($source, $this->preLexer->transform($source));
+        self::assertSame($source, $this->preLexer->transform($source));
     }
 
-    public function testMultipleTagsInSource(): void
+    public function test_multiple_tags_in_source(): void
     {
         $source = '<twig:alert message="A" />' . "\n" . '<twig:alert message="B" />';
         $result = $this->preLexer->transform($source);
 
-        $this->assertSame(
+        self::assertSame(
             "{{ component('alert', { message: 'A' }) }}\n{{ component('alert', { message: 'B' }) }}",
             $result,
         );
     }
 
-    public function testTagMixedWithRegularTwig(): void
+    public function test_tag_mixed_with_regular_twig(): void
     {
         $source = '{% if show %}<twig:alert message="Hi" />{% endif %}';
         $result = $this->preLexer->transform($source);
 
-        $this->assertSame(
+        self::assertSame(
             "{% if show %}{{ component('alert', { message: 'Hi' }) }}{% endif %}",
             $result,
         );
@@ -85,42 +85,42 @@ final class PreLexerTest extends TestCase
 
     // --- new scanner tests ---
 
-    public function testTwigInterpolationInStaticValue(): void
+    public function test_twig_interpolation_in_static_value(): void
     {
         $result = $this->preLexer->transform('<twig:alert message="Hello {{ name }}!" />');
 
-        $this->assertSame(
+        self::assertSame(
             "{{ component('alert', { message: 'Hello ' ~ (name) ~ '!' }) }}",
             $result,
         );
     }
 
-    public function testTwigInterpolationOnlyInValue(): void
+    public function test_twig_interpolation_only_in_value(): void
     {
         // Value is entirely a Twig expression — no static prefix/suffix
         $result = $this->preLexer->transform('<twig:alert message="{{ name }}" />');
 
-        $this->assertSame(
+        self::assertSame(
             "{{ component('alert', { message: (name) }) }}",
             $result,
         );
     }
 
-    public function testComponentTagInsideTwigCommentIsPassedThrough(): void
+    public function test_component_tag_inside_twig_comment_is_passed_through(): void
     {
         $source = '{# <twig:alert message="Saved!" /> #}';
 
-        $this->assertSame($source, $this->preLexer->transform($source));
+        self::assertSame($source, $this->preLexer->transform($source));
     }
 
-    public function testComponentTagInsideVerbatimIsPassedThrough(): void
+    public function test_component_tag_inside_verbatim_is_passed_through(): void
     {
         $source = '{% verbatim %}<twig:alert message="Saved!" />{% endverbatim %}';
 
-        $this->assertSame($source, $this->preLexer->transform($source));
+        self::assertSame($source, $this->preLexer->transform($source));
     }
 
-    public function testUnclosedAttributeValueThrowsWithLineNumber(): void
+    public function test_unclosed_attribute_value_throws_with_line_number(): void
     {
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessageMatches("/Expected '\"' but reached end of input/");
@@ -130,88 +130,88 @@ final class PreLexerTest extends TestCase
 
     // --- non-self-closing tags ---
 
-    public function testNonSelfClosingWithContent(): void
+    public function test_non_self_closing_with_content(): void
     {
         $result = $this->preLexer->transform('<twig:card><p>hello</p></twig:card>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/Card.html.twig' with component_embed_vars({}) only %}{% block content %}<p>hello</p>{% endblock %}{% endembed %}",
             $result,
         );
     }
 
-    public function testNonSelfClosingEmpty(): void
+    public function test_non_self_closing_empty(): void
     {
         $result = $this->preLexer->transform('<twig:card></twig:card>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/Card.html.twig' with component_embed_vars({}) only %}{% endembed %}",
             $result,
         );
     }
 
-    public function testNonSelfClosingWithProps(): void
+    public function test_non_self_closing_with_props(): void
     {
         $result = $this->preLexer->transform('<twig:card title="Hello"><p>inner</p></twig:card>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/Card.html.twig' with component_embed_vars({ title: 'Hello' }) only %}{% block content %}<p>inner</p>{% endblock %}{% endembed %}",
             $result,
         );
     }
 
-    public function testKebabNameNonSelfClosing(): void
+    public function test_kebab_name_non_self_closing(): void
     {
         $result = $this->preLexer->transform('<twig:my-card></twig:my-card>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/MyCard.html.twig' with component_embed_vars({}) only %}{% endembed %}",
             $result,
         );
     }
 
-    public function testNamedSlot(): void
+    public function test_named_slot(): void
     {
         $result = $this->preLexer->transform('<twig:modal><twig:block name="footer">Cancel</twig:block></twig:modal>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/Modal.html.twig' with component_embed_vars({}) only %}{% block footer %}Cancel{% endblock %}{% endembed %}",
             $result,
         );
     }
 
-    public function testNamedSlotWithDefaultContent(): void
+    public function test_named_slot_with_default_content(): void
     {
         $result = $this->preLexer->transform('<twig:modal><twig:block name="footer">Cancel</twig:block>Sure?</twig:modal>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/Modal.html.twig' with component_embed_vars({}) only %}{% block footer %}Cancel{% endblock %}{% block content %}Sure?{% endblock %}{% endembed %}",
             $result,
         );
     }
 
-    public function testDefaultContentBeforeNamedSlot(): void
+    public function test_default_content_before_named_slot(): void
     {
         // Default block must be closed before the named slot opens
         $result = $this->preLexer->transform('<twig:modal>Sure?<twig:block name="footer">Cancel</twig:block></twig:modal>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/Modal.html.twig' with component_embed_vars({}) only %}{% block content %}Sure?{% endblock %}{% block footer %}Cancel{% endblock %}{% endembed %}",
             $result,
         );
     }
 
-    public function testNestedSelfClosingInsideNonSelfClosing(): void
+    public function test_nested_self_closing_inside_non_self_closing(): void
     {
         $result = $this->preLexer->transform('<twig:card><twig:alert message="Hi" /></twig:card>');
 
-        $this->assertSame(
+        self::assertSame(
             "{% embed '@components/Card.html.twig' with component_embed_vars({}) only %}{% block content %}{{ component('alert', { message: 'Hi' }) }}{% endblock %}{% endembed %}",
             $result,
         );
     }
 
-    public function testMismatchedClosingTagThrows(): void
+    public function test_mismatched_closing_tag_throws(): void
     {
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessageMatches('/Expected.*card.*found.*alert/');
@@ -219,7 +219,7 @@ final class PreLexerTest extends TestCase
         $this->preLexer->transform('<twig:card><p>hello</p></twig:alert>');
     }
 
-    public function testUnclosedComponentThrows(): void
+    public function test_unclosed_component_throws(): void
     {
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessageMatches('/closing tag.*card.*end of input/');
@@ -227,45 +227,45 @@ final class PreLexerTest extends TestCase
         $this->preLexer->transform('<twig:card>hello');
     }
 
-    public function testBlockAtTopLevelBecomesBlockDefinition(): void
+    public function test_block_at_top_level_becomes_block_definition(): void
     {
         // In a component template: <twig:block name="content"> → {% block content %}...{% endblock %}
         $result = $this->preLexer->transform('<div><twig:block name="content"></twig:block></div>');
 
-        $this->assertSame('<div>{% block content %}{% endblock %}</div>', $result);
+        self::assertSame('<div>{% block content %}{% endblock %}</div>', $result);
     }
 
-    public function testBlockAtTopLevelWithDefaultContent(): void
+    public function test_block_at_top_level_with_default_content(): void
     {
         $result = $this->preLexer->transform('<twig:block name="title">Default title</twig:block>');
 
-        $this->assertSame('{% block title %}Default title{% endblock %}', $result);
+        self::assertSame('{% block title %}Default title{% endblock %}', $result);
     }
 
     // --- dynamic props ---
 
-    public function testDynamicProp(): void
+    public function test_dynamic_prop(): void
     {
         $result = $this->preLexer->transform('<twig:button :href="url" />');
 
-        $this->assertSame("{{ component('button', { href: url }) }}", $result);
+        self::assertSame("{{ component('button', { href: url }) }}", $result);
     }
 
-    public function testDynamicPropWithExpression(): void
+    public function test_dynamic_prop_with_expression(): void
     {
         $result = $this->preLexer->transform('<twig:button :href="path(\'route\', {id: item.id})" />');
 
-        $this->assertSame("{{ component('button', { href: path('route', {id: item.id}) }) }}", $result);
+        self::assertSame("{{ component('button', { href: path('route', {id: item.id}) }) }}", $result);
     }
 
-    public function testMixedStaticAndDynamicProps(): void
+    public function test_mixed_static_and_dynamic_props(): void
     {
         $result = $this->preLexer->transform('<twig:button variant="primary" :href="url" />');
 
-        $this->assertSame("{{ component('button', { variant: 'primary', href: url }) }}", $result);
+        self::assertSame("{{ component('button', { variant: 'primary', href: url }) }}", $result);
     }
 
-    public function testDynamicPropWithoutEqualsThrows(): void
+    public function test_dynamic_prop_without_equals_throws(): void
     {
         $this->expectException(SyntaxError::class);
 
@@ -275,24 +275,24 @@ final class PreLexerTest extends TestCase
 
     // --- boolean props ---
 
-    public function testBooleanProp(): void
+    public function test_boolean_prop(): void
     {
         $result = $this->preLexer->transform('<twig:input disabled />');
 
-        $this->assertSame("{{ component('input', { disabled: true }) }}", $result);
+        self::assertSame("{{ component('input', { disabled: true }) }}", $result);
     }
 
-    public function testMultipleBooleanProps(): void
+    public function test_multiple_boolean_props(): void
     {
         $result = $this->preLexer->transform('<twig:input disabled readonly />');
 
-        $this->assertSame("{{ component('input', { disabled: true, readonly: true }) }}", $result);
+        self::assertSame("{{ component('input', { disabled: true, readonly: true }) }}", $result);
     }
 
-    public function testBooleanMixedWithOtherProps(): void
+    public function test_boolean_mixed_with_other_props(): void
     {
         $result = $this->preLexer->transform('<twig:input type="text" disabled :value="val" />');
 
-        $this->assertSame("{{ component('input', { type: 'text', disabled: true, value: val }) }}", $result);
+        self::assertSame("{{ component('input', { type: 'text', disabled: true, value: val }) }}", $result);
     }
 }

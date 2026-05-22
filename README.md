@@ -4,7 +4,7 @@ A lightweight, framework-free Twig component syntax layer.
 
 Write components as HTML-like tags in your Twig templates — no Symfony, no
 bundle, no framework dependency. The library rewrites `<twig:name />` and
-`<twig:name>…</twig:name>` into native Twig before the engine tokenises the
+`<twig:name>…</twig:name>` into native Twig before the engine tokenizes the
 template, so it slots into any Twig 3.x project.
 
 ```html

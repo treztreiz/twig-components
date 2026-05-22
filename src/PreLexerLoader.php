@@ -16,12 +16,13 @@ use Twig\Source;
 final readonly class PreLexerLoader implements LoaderInterface
 {
     /** Bump when PreLexer output format changes to bust the compiled-template cache. */
-    private const CACHE_KEY_VERSION = 'v1';
+    private const string CACHE_KEY_VERSION = 'v1';
 
     public function __construct(
         private LoaderInterface $inner,
         private PreLexer $preLexer,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws SyntaxError

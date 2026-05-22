@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace TwigComponents;
 
-use RuntimeException;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -13,9 +12,12 @@ use Twig\Markup;
 
 final readonly class ComponentRenderer
 {
-    public function __construct(private ComponentConfig $config) {}
+    public function __construct(private ComponentConfig $config)
+    {
+    }
 
     /**
+     * @param array<string, mixed> $props
      * @throws SyntaxError
      * @throws RuntimeError
      * @throws LoaderError
@@ -25,8 +27,8 @@ final readonly class ComponentRenderer
         $templateName = $this->resolveTemplateName($name);
 
         if (!$twig->getLoader()->exists($templateName)) {
-            throw new RuntimeException(
-                sprintf("Component '%s': template '%s' not found.", $name, $templateName)
+            throw new \RuntimeException(
+                sprintf("Component '%s': template '%s' not found.", $name, $templateName),
             );
         }
 

@@ -9,94 +9,94 @@ use TwigComponents\ComponentAttributes;
 
 final class ComponentAttributesTest extends TestCase
 {
-    public function testStringifiesStringAttributes(): void
+    public function test_stringifies_string_attributes(): void
     {
         $attrs = new ComponentAttributes(['class' => 'btn', 'type' => 'submit']);
 
-        $this->assertSame(' class="btn" type="submit"', (string) $attrs);
+        self::assertSame(' class="btn" type="submit"', (string) $attrs);
     }
 
-    public function testBooleanTrueRendersAsBareAttribute(): void
+    public function test_boolean_true_renders_as_bare_attribute(): void
     {
         $attrs = new ComponentAttributes(['disabled' => true]);
 
-        $this->assertSame(' disabled', (string) $attrs);
+        self::assertSame(' disabled', (string) $attrs);
     }
 
-    public function testBooleanFalseIsOmitted(): void
+    public function test_boolean_false_is_omitted(): void
     {
         $attrs = new ComponentAttributes(['disabled' => false, 'class' => 'btn']);
 
-        $this->assertSame(' class="btn"', (string) $attrs);
+        self::assertSame(' class="btn"', (string) $attrs);
     }
 
-    public function testNullIsOmitted(): void
+    public function test_null_is_omitted(): void
     {
         $attrs = new ComponentAttributes(['class' => null, 'id' => 'foo']);
 
-        $this->assertSame(' id="foo"', (string) $attrs);
+        self::assertSame(' id="foo"', (string) $attrs);
     }
 
-    public function testEmptyAttributesProduceEmptyString(): void
+    public function test_empty_attributes_produce_empty_string(): void
     {
         $attrs = new ComponentAttributes([]);
 
-        $this->assertSame('', (string) $attrs);
+        self::assertSame('', (string) $attrs);
     }
 
-    public function testValuesAreHtmlEscaped(): void
+    public function test_values_are_html_escaped(): void
     {
         $attrs = new ComponentAttributes(['data-value' => '<script>alert(1)</script>']);
 
-        $this->assertStringContainsString('&lt;script&gt;', (string) $attrs);
-        $this->assertStringNotContainsString('<script>', (string) $attrs);
+        self::assertStringContainsString('&lt;script&gt;', (string) $attrs);
+        self::assertStringNotContainsString('<script>', (string) $attrs);
     }
 
-    public function testOnly(): void
+    public function test_only(): void
     {
         $attrs = new ComponentAttributes(['class' => 'btn', 'id' => 'foo', 'type' => 'submit']);
 
-        $this->assertSame(' class="btn"', (string) $attrs->only('class'));
+        self::assertSame(' class="btn"', (string) $attrs->only('class'));
     }
 
-    public function testWithout(): void
+    public function test_without(): void
     {
         $attrs = new ComponentAttributes(['class' => 'btn', 'id' => 'foo']);
 
-        $this->assertSame(' id="foo"', (string) $attrs->without('class'));
+        self::assertSame(' id="foo"', (string) $attrs->without('class'));
     }
 
-    public function testHas(): void
+    public function test_has(): void
     {
         $attrs = new ComponentAttributes(['class' => 'btn']);
 
-        $this->assertTrue($attrs->has('class'));
-        $this->assertFalse($attrs->has('id'));
+        self::assertTrue($attrs->has('class'));
+        self::assertFalse($attrs->has('id'));
     }
 
-    public function testGet(): void
+    public function test_get(): void
     {
         $attrs = new ComponentAttributes(['class' => 'btn']);
 
-        $this->assertSame('btn', $attrs->get('class'));
-        $this->assertNull($attrs->get('id'));
-        $this->assertSame('default', $attrs->get('id', 'default'));
+        self::assertSame('btn', $attrs->get('class'));
+        self::assertNull($attrs->get('id'));
+        self::assertSame('default', $attrs->get('id', 'default'));
     }
 
-    public function testAll(): void
+    public function test_all(): void
     {
         $data = ['class' => 'btn', 'disabled' => true];
         $attrs = new ComponentAttributes($data);
 
-        $this->assertSame($data, $attrs->all());
+        self::assertSame($data, $attrs->all());
     }
 
-    public function testImmutability(): void
+    public function test_immutability(): void
     {
         $original = new ComponentAttributes(['class' => 'btn', 'id' => 'foo']);
         $filtered = $original->without('class');
 
-        $this->assertSame(' class="btn" id="foo"', (string) $original);
-        $this->assertSame(' id="foo"', (string) $filtered);
+        self::assertSame(' class="btn" id="foo"', (string) $original);
+        self::assertSame(' id="foo"', (string) $filtered);
     }
 }

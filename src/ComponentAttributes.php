@@ -13,9 +13,12 @@ namespace TwigComponents;
  *   <div{{ attrs.without('class') }}>...</div>
  *   <div{{ attrs.only('class', 'id') }}>...</div>
  */
-final class ComponentAttributes implements \Stringable
+final readonly class ComponentAttributes implements \Stringable
 {
-    public function __construct(private readonly array $attributes) {}
+    /** @param array<string, bool|string|null> $attributes */
+    public function __construct(private array $attributes)
+    {
+    }
 
     public function __toString(): string
     {
@@ -26,7 +29,7 @@ final class ComponentAttributes implements \Stringable
                 continue;
             }
 
-            $safeKey = htmlspecialchars((string) $key, \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
+            $safeKey = htmlspecialchars($key, \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
 
             if ($value === true) {
                 $html .= ' ' . $safeKey;
@@ -59,6 +62,7 @@ final class ComponentAttributes implements \Stringable
         return $this->attributes[$key] ?? $default;
     }
 
+    /** @return array<string, bool|string|null> */
     public function all(): array
     {
         return $this->attributes;

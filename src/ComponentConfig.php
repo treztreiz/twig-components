@@ -13,5 +13,6 @@ final readonly class ComponentConfig
     public function __construct(
         public string $templateExtension = '.html.twig',
         public string $loaderNamespace = 'components',
-    ) {}
+    ) {
+    }
 }

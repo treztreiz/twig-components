@@ -30,14 +30,14 @@ final class ComponentRenderTest extends TestCase
         ComponentExtension::register($this->twig, new ComponentRenderer(new ComponentConfig()));
     }
 
-    public function testSelfClosingComponentRendersTemplate(): void
+    public function test_self_closing_component_renders_template(): void
     {
         $result = $this->twig->render('page.html.twig');
 
-        $this->assertStringContainsString('<div class="alert">Saved!</div>', $result);
+        self::assertStringContainsString('<div class="alert">Saved!</div>', $result);
     }
 
-    public function testMissingComponentThrows(): void
+    public function test_missing_component_throws(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches("/Component 'ghost'/");
@@ -46,30 +46,30 @@ final class ComponentRenderTest extends TestCase
         $renderer->render($this->twig, 'ghost', []);
     }
 
-    public function testPropIsPassedAsTemplateVariable(): void
+    public function test_prop_is_passed_as_template_variable(): void
     {
         $renderer = new ComponentRenderer(new ComponentConfig());
         $result = $renderer->render($this->twig, 'alert', ['message' => 'Direct call']);
 
-        $this->assertStringContainsString('<div class="alert">Direct call</div>', (string) $result);
+        self::assertStringContainsString('<div class="alert">Direct call</div>', (string) $result);
     }
 
-    public function testNonSelfClosingComponentRendersContent(): void
+    public function test_non_self_closing_component_renders_content(): void
     {
         $result = $this->twig->render('card-page.html.twig');
 
-        $this->assertStringContainsString('<div class="card"><p>inner content</p></div>', $result);
+        self::assertStringContainsString('<div class="card"><p>inner content</p></div>', $result);
     }
 
-    public function testNamedSlotAndDefaultContentRender(): void
+    public function test_named_slot_and_default_content_render(): void
     {
         $result = $this->twig->render('modal-page.html.twig');
 
-        $this->assertStringContainsString('<div class="body">Sure?</div>', $result);
-        $this->assertStringContainsString('<div class="footer">Cancel</div>', $result);
+        self::assertStringContainsString('<div class="body">Sure?</div>', $result);
+        self::assertStringContainsString('<div class="footer">Cancel</div>', $result);
     }
 
-    public function testKebabNameResolvesToPascalFile(): void
+    public function test_kebab_name_resolves_to_pascal_file(): void
     {
         $renderer = new ComponentRenderer(new ComponentConfig());
 
@@ -79,19 +79,19 @@ final class ComponentRenderTest extends TestCase
         $renderer->render($this->twig, 'my-alert', []);
     }
 
-    public function testAttrsRenderedOnSelfClosing(): void
+    public function test_attrs_rendered_on_self_closing(): void
     {
         $result = $this->twig->render('input-page.html.twig');
 
-        $this->assertStringContainsString('type="text"', $result);
-        $this->assertStringContainsString('class="form-control"', $result);
+        self::assertStringContainsString('type="text"', $result);
+        self::assertStringContainsString('class="form-control"', $result);
     }
 
-    public function testAttrsRenderedOnNonSelfClosing(): void
+    public function test_attrs_rendered_on_non_self_closing(): void
     {
         $result = $this->twig->render('card-attrs-page.html.twig');
 
-        $this->assertStringContainsString('id="main"', $result);
-        $this->assertStringContainsString('class="highlight"', $result);
+        self::assertStringContainsString('id="main"', $result);
+        self::assertStringContainsString('class="highlight"', $result);
     }
 }
