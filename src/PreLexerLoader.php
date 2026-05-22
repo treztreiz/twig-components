@@ -15,6 +15,9 @@ use Twig\Source;
  */
 final readonly class PreLexerLoader implements LoaderInterface
 {
+    /** Bump when PreLexer output format changes to bust the compiled-template cache. */
+    private const CACHE_KEY_VERSION = 'v1';
+
     public function __construct(
         private LoaderInterface $inner,
         private PreLexer $preLexer,
@@ -34,7 +37,7 @@ final readonly class PreLexerLoader implements LoaderInterface
 
     public function getCacheKey(string $name): string
     {
-        return $this->inner->getCacheKey($name);
+        return $this->inner->getCacheKey($name) . ':preLexer:' . self::CACHE_KEY_VERSION;
     }
 
     public function isFresh(string $name, int $time): bool
