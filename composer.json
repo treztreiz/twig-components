@@ -1,0 +1,25 @@
+{
+    "name": "jalis/twig-components",
+    "type": "library",
+    "version": "1.0.0",
+    "require": {
+        "php": "^8.3",
+        "twig/twig": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TwigComponents\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TwigComponents\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}
