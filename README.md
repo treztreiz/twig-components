@@ -1,4 +1,4 @@
-# twig-components
+# Twig Components
 
 A lightweight, framework-free Twig component syntax layer.
 
