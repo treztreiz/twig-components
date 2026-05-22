@@ -227,12 +227,19 @@ final class PreLexerTest extends TestCase
         $this->preLexer->transform('<twig:card>hello');
     }
 
-    public function testBlockOutsideComponentThrows(): void
+    public function testBlockAtTopLevelBecomesBlockDefinition(): void
     {
-        $this->expectException(SyntaxError::class);
-        $this->expectExceptionMessageMatches('/<twig:block>.*only valid/');
+        // In a component template: <twig:block name="content"> → {% block content %}...{% endblock %}
+        $result = $this->preLexer->transform('<div><twig:block name="content"></twig:block></div>');
 
-        $this->preLexer->transform('<twig:block name="footer">content</twig:block>');
+        $this->assertSame('<div>{% block content %}{% endblock %}</div>', $result);
+    }
+
+    public function testBlockAtTopLevelWithDefaultContent(): void
+    {
+        $result = $this->preLexer->transform('<twig:block name="title">Default title</twig:block>');
+
+        $this->assertSame('{% block title %}Default title{% endblock %}', $result);
     }
 
     // --- dynamic props ---

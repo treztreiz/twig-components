@@ -187,13 +187,6 @@ final class PreLexer
      */
     private function handleNamedSlot(): string
     {
-        if (empty($this->componentStack)) {
-            throw new SyntaxError(
-                '<twig:block> is only valid inside a non-self-closing component.',
-                $this->line,
-            );
-        }
-
         // Only "name" is supported on <twig:block>
         $this->consumeWhitespace();
         if (!preg_match('/\Gname\b/', $this->input, $m, 0, $this->position)) {
@@ -207,12 +200,14 @@ final class PreLexer
         $this->consumeWhitespace();
         $this->expectAndConsumeChar('>');
 
-        // Close the open default block on the parent component if there is one
-        $top = &$this->componentStack[count($this->componentStack) - 1];
+        // When inside a component, close its open default block if there is one
         $output = '';
-        if (!$top['isBlock'] && $top['hasDefaultBlock']) {
-            $top['hasDefaultBlock'] = false;
-            $output .= '{% endblock %}';
+        if (!empty($this->componentStack)) {
+            $top = &$this->componentStack[count($this->componentStack) - 1];
+            if (!$top['isBlock'] && $top['hasDefaultBlock']) {
+                $top['hasDefaultBlock'] = false;
+                $output .= '{% endblock %}';
+            }
         }
 
         $output .= sprintf('{%% block %s %%}', $blockName);
