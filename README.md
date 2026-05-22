@@ -59,7 +59,8 @@ $inner->addPath(__DIR__ . '/components', 'components');
 $loader = new PreLexerLoader($inner, new PreLexer($config));
 
 $twig = new Environment($loader, [
-    'cache' => __DIR__ . '/var/cache/twig',  // optional; safe with PreLexerLoader
+    'cache'       => __DIR__ . '/var/cache/twig',  // optional; safe with PreLexerLoader
+    'auto_reload' => true,                         // recommended in dev; omit in production
 ]);
 
 $renderer = new ComponentRenderer($config);
@@ -78,6 +79,8 @@ src/
 ```
 
 Component names are resolved as `PascalCase`: `<twig:my-card />` → `MyCard.html.twig`.
+
+> **Cache note:** Twig only rechecks template freshness when `auto_reload` is enabled. Without it, editing a component template won't take effect until the compiled cache is cleared. Enable `auto_reload` in development; in production, clear `cache/` on deploy.
 
 ---
 
