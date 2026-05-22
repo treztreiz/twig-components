@@ -135,7 +135,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:card><p>hello</p></twig:card>');
 
         $this->assertSame(
-            "{% embed '@components/Card.html.twig' only %}{% block content %}<p>hello</p>{% endblock %}{% endembed %}",
+            "{% embed '@components/Card.html.twig' with component_embed_vars({}) only %}{% block content %}<p>hello</p>{% endblock %}{% endembed %}",
             $result,
         );
     }
@@ -145,7 +145,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:card></twig:card>');
 
         $this->assertSame(
-            "{% embed '@components/Card.html.twig' only %}{% endembed %}",
+            "{% embed '@components/Card.html.twig' with component_embed_vars({}) only %}{% endembed %}",
             $result,
         );
     }
@@ -155,7 +155,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:card title="Hello"><p>inner</p></twig:card>');
 
         $this->assertSame(
-            "{% embed '@components/Card.html.twig' with { title: 'Hello' } only %}{% block content %}<p>inner</p>{% endblock %}{% endembed %}",
+            "{% embed '@components/Card.html.twig' with component_embed_vars({ title: 'Hello' }) only %}{% block content %}<p>inner</p>{% endblock %}{% endembed %}",
             $result,
         );
     }
@@ -165,7 +165,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:my-card></twig:my-card>');
 
         $this->assertSame(
-            "{% embed '@components/MyCard.html.twig' only %}{% endembed %}",
+            "{% embed '@components/MyCard.html.twig' with component_embed_vars({}) only %}{% endembed %}",
             $result,
         );
     }
@@ -175,7 +175,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:modal><twig:block name="footer">Cancel</twig:block></twig:modal>');
 
         $this->assertSame(
-            "{% embed '@components/Modal.html.twig' only %}{% block footer %}Cancel{% endblock %}{% endembed %}",
+            "{% embed '@components/Modal.html.twig' with component_embed_vars({}) only %}{% block footer %}Cancel{% endblock %}{% endembed %}",
             $result,
         );
     }
@@ -185,7 +185,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:modal><twig:block name="footer">Cancel</twig:block>Sure?</twig:modal>');
 
         $this->assertSame(
-            "{% embed '@components/Modal.html.twig' only %}{% block footer %}Cancel{% endblock %}{% block content %}Sure?{% endblock %}{% endembed %}",
+            "{% embed '@components/Modal.html.twig' with component_embed_vars({}) only %}{% block footer %}Cancel{% endblock %}{% block content %}Sure?{% endblock %}{% endembed %}",
             $result,
         );
     }
@@ -196,7 +196,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:modal>Sure?<twig:block name="footer">Cancel</twig:block></twig:modal>');
 
         $this->assertSame(
-            "{% embed '@components/Modal.html.twig' only %}{% block content %}Sure?{% endblock %}{% block footer %}Cancel{% endblock %}{% endembed %}",
+            "{% embed '@components/Modal.html.twig' with component_embed_vars({}) only %}{% block content %}Sure?{% endblock %}{% block footer %}Cancel{% endblock %}{% endembed %}",
             $result,
         );
     }
@@ -206,7 +206,7 @@ final class PreLexerTest extends TestCase
         $result = $this->preLexer->transform('<twig:card><twig:alert message="Hi" /></twig:card>');
 
         $this->assertSame(
-            "{% embed '@components/Card.html.twig' only %}{% block content %}{{ component('alert', { message: 'Hi' }) }}{% endblock %}{% endembed %}",
+            "{% embed '@components/Card.html.twig' with component_embed_vars({}) only %}{% block content %}{{ component('alert', { message: 'Hi' }) }}{% endblock %}{% endembed %}",
             $result,
         );
     }

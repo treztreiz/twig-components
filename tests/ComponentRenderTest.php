@@ -27,7 +27,7 @@ final class ComponentRenderTest extends TestCase
         $preLexerLoader = new PreLexerLoader($loader, new PreLexer());
 
         $this->twig = new Environment($preLexerLoader, ['debug' => true, 'cache' => false]);
-        $this->twig->addExtension(new ComponentExtension(new ComponentRenderer(new ComponentConfig())));
+        ComponentExtension::register($this->twig, new ComponentRenderer(new ComponentConfig()));
     }
 
     public function testSelfClosingComponentRendersTemplate(): void
@@ -42,14 +42,12 @@ final class ComponentRenderTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches("/Component 'ghost'/");
 
-        $this->twig->addExtension(new \Twig\Extension\StringLoaderExtension());
         $renderer = new ComponentRenderer(new ComponentConfig());
         $renderer->render($this->twig, 'ghost', []);
     }
 
     public function testPropIsPassedAsTemplateVariable(): void
     {
-        // Render via the component() function directly, bypassing the pre-lexer
         $renderer = new ComponentRenderer(new ComponentConfig());
         $result = $renderer->render($this->twig, 'alert', ['message' => 'Direct call']);
 
@@ -73,13 +71,27 @@ final class ComponentRenderTest extends TestCase
 
     public function testKebabNameResolvesToPascalFile(): void
     {
-        // my-alert should resolve to MyAlert.html.twig — we just verify the resolver path,
-        // not a real render, to avoid creating another fixture for this spike.
         $renderer = new ComponentRenderer(new ComponentConfig());
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches("/@components\/MyAlert\.html\.twig/");
 
         $renderer->render($this->twig, 'my-alert', []);
+    }
+
+    public function testAttrsRenderedOnSelfClosing(): void
+    {
+        $result = $this->twig->render('input-page.html.twig');
+
+        $this->assertStringContainsString('type="text"', $result);
+        $this->assertStringContainsString('class="form-control"', $result);
+    }
+
+    public function testAttrsRenderedOnNonSelfClosing(): void
+    {
+        $result = $this->twig->render('card-attrs-page.html.twig');
+
+        $this->assertStringContainsString('id="main"', $result);
+        $this->assertStringContainsString('class="highlight"', $result);
     }
 }

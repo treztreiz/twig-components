@@ -30,6 +30,8 @@ final readonly class ComponentRenderer
             );
         }
 
+        $props['attrs'] = new ComponentAttributes($props);
+
         return new Markup($twig->render($templateName, $props), 'UTF-8');
     }
 

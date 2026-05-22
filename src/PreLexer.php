@@ -174,8 +174,8 @@ final class PreLexer
         $output = $this->maybeOpenDefaultBlock();
         $template = $this->resolveEmbedTemplate($name);
         $output .= $attrs !== ''
-            ? sprintf("{%% embed '%s' with { %s } only %%}", $template, $attrs)
-            : sprintf("{%% embed '%s' only %%}", $template);
+            ? sprintf("{%% embed '%s' with component_embed_vars({ %s }) only %%}", $template, $attrs)
+            : sprintf("{%% embed '%s' with component_embed_vars({}) only %%}", $template);
 
         $this->componentStack[] = ['name' => $name, 'hasDefaultBlock' => false, 'isBlock' => false];
 
