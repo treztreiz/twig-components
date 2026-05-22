@@ -56,6 +56,21 @@ final class ComponentRenderTest extends TestCase
         $this->assertStringContainsString('<div class="alert">Direct call</div>', (string) $result);
     }
 
+    public function testNonSelfClosingComponentRendersContent(): void
+    {
+        $result = $this->twig->render('card-page.html.twig');
+
+        $this->assertStringContainsString('<div class="card"><p>inner content</p></div>', $result);
+    }
+
+    public function testNamedSlotAndDefaultContentRender(): void
+    {
+        $result = $this->twig->render('modal-page.html.twig');
+
+        $this->assertStringContainsString('<div class="body">Sure?</div>', $result);
+        $this->assertStringContainsString('<div class="footer">Cancel</div>', $result);
+    }
+
     public function testKebabNameResolvesToPascalFile(): void
     {
         // my-alert should resolve to MyAlert.html.twig — we just verify the resolver path,

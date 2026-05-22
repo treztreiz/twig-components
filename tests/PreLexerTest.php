@@ -128,12 +128,111 @@ final class PreLexerTest extends TestCase
         $this->preLexer->transform('<twig:alert message="unclosed />');
     }
 
-    public function testNonSelfClosingTagThrows(): void
+    // --- non-self-closing tags ---
+
+    public function testNonSelfClosingWithContent(): void
+    {
+        $result = $this->preLexer->transform('<twig:card><p>hello</p></twig:card>');
+
+        $this->assertSame(
+            "{% embed '@components/Card.html.twig' only %}{% block content %}<p>hello</p>{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testNonSelfClosingEmpty(): void
+    {
+        $result = $this->preLexer->transform('<twig:card></twig:card>');
+
+        $this->assertSame(
+            "{% embed '@components/Card.html.twig' only %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testNonSelfClosingWithProps(): void
+    {
+        $result = $this->preLexer->transform('<twig:card title="Hello"><p>inner</p></twig:card>');
+
+        $this->assertSame(
+            "{% embed '@components/Card.html.twig' with { title: 'Hello' } only %}{% block content %}<p>inner</p>{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testKebabNameNonSelfClosing(): void
+    {
+        $result = $this->preLexer->transform('<twig:my-card></twig:my-card>');
+
+        $this->assertSame(
+            "{% embed '@components/MyCard.html.twig' only %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testNamedSlot(): void
+    {
+        $result = $this->preLexer->transform('<twig:modal><twig:block name="footer">Cancel</twig:block></twig:modal>');
+
+        $this->assertSame(
+            "{% embed '@components/Modal.html.twig' only %}{% block footer %}Cancel{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testNamedSlotWithDefaultContent(): void
+    {
+        $result = $this->preLexer->transform('<twig:modal><twig:block name="footer">Cancel</twig:block>Sure?</twig:modal>');
+
+        $this->assertSame(
+            "{% embed '@components/Modal.html.twig' only %}{% block footer %}Cancel{% endblock %}{% block content %}Sure?{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testDefaultContentBeforeNamedSlot(): void
+    {
+        // Default block must be closed before the named slot opens
+        $result = $this->preLexer->transform('<twig:modal>Sure?<twig:block name="footer">Cancel</twig:block></twig:modal>');
+
+        $this->assertSame(
+            "{% embed '@components/Modal.html.twig' only %}{% block content %}Sure?{% endblock %}{% block footer %}Cancel{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testNestedSelfClosingInsideNonSelfClosing(): void
+    {
+        $result = $this->preLexer->transform('<twig:card><twig:alert message="Hi" /></twig:card>');
+
+        $this->assertSame(
+            "{% embed '@components/Card.html.twig' only %}{% block content %}{{ component('alert', { message: 'Hi' }) }}{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function testMismatchedClosingTagThrows(): void
     {
         $this->expectException(SyntaxError::class);
-        $this->expectExceptionMessageMatches('/Non-self-closing.*not yet supported/');
+        $this->expectExceptionMessageMatches('/Expected.*card.*found.*alert/');
 
-        $this->preLexer->transform('<twig:card>content</twig:card>');
+        $this->preLexer->transform('<twig:card><p>hello</p></twig:alert>');
+    }
+
+    public function testUnclosedComponentThrows(): void
+    {
+        $this->expectException(SyntaxError::class);
+        $this->expectExceptionMessageMatches('/closing tag.*card.*end of input/');
+
+        $this->preLexer->transform('<twig:card>hello');
+    }
+
+    public function testBlockOutsideComponentThrows(): void
+    {
+        $this->expectException(SyntaxError::class);
+        $this->expectExceptionMessageMatches('/<twig:block>.*only valid/');
+
+        $this->preLexer->transform('<twig:block name="footer">content</twig:block>');
     }
 
     // --- dynamic props ---

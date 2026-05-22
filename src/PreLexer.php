@@ -7,12 +7,16 @@ namespace TwigComponents;
 use Twig\Error\SyntaxError;
 
 /**
- * Transforms <twig:name .../> syntax into {{ component(...) }} calls before
- * Twig tokenizes the template. Uses a character-by-character scanner so that
- * {{ }} expressions inside attribute values are handled correctly.
+ * Transforms <twig:name .../> and <twig:name>...</twig:name> syntax into
+ * {{ component() }} / {% embed %} calls before Twig tokenises the template.
  *
- * Scope (current): self-closing tags only, static + interpolated props.
- * Non-self-closing tags are reserved for the next slice.
+ * Self-closing     → {{ component('name', { props }) }}
+ * Non-self-closing → {% embed '@ns/Name.html.twig' with { props } only %}
+ *                      {% block content %}...{% endblock %}
+ *                    {% endembed %}
+ * Named slot       → <twig:block name="x"> → {% block x %}
+ *
+ * 'block' is a reserved tag name — it cannot be used as a component name.
  */
 final class PreLexer
 {
@@ -20,6 +24,11 @@ final class PreLexer
     private int $length;
     private int $position;
     private int $line;
+
+    /** @var array<array{name: string, hasDefaultBlock: bool, isBlock: bool}> */
+    private array $componentStack;
+
+    public function __construct(private readonly ComponentConfig $config = new ComponentConfig()) {}
 
     public function transform(string $source): string
     {
@@ -31,6 +40,7 @@ final class PreLexer
         $this->length = \strlen($this->input);
         $this->position = 0;
         $this->line = 1;
+        $this->componentStack = [];
 
         $output = '';
 
@@ -53,25 +63,21 @@ final class PreLexer
                 continue;
             }
 
+            // Closing tag — check before <twig: to avoid matching </twig: as <twig:
+            if ($this->consume('</twig:')) {
+                $output .= $this->handleClosingTag();
+                continue;
+            }
+
             if ($this->consume('<twig:')) {
-                $name = $this->consumeComponentName();
-                $attrs = $this->consumeAttributes($name);
-
-                if ($this->consume('/>')) {
-                    $output .= $attrs !== ''
-                        ? \sprintf("{{ component('%s', { %s }) }}", $name, $attrs)
-                        : \sprintf("{{ component('%s', {}) }}", $name);
-                    continue;
-                }
-
-                // Non-self-closing: next slice
-                throw new SyntaxError(
-                    \sprintf('Non-self-closing <twig:%s> is not yet supported.', $name),
-                    $this->line,
-                );
+                $output .= $this->handleOpeningTag();
+                continue;
             }
 
             $char = $this->input[$this->position];
+            if (!ctype_space($char)) {
+                $output .= $this->maybeOpenDefaultBlock();
+            }
             if ($char === "\n") {
                 ++$this->line;
             }
@@ -79,7 +85,147 @@ final class PreLexer
             ++$this->position;
         }
 
+        if (!empty($this->componentStack)) {
+            $last = end($this->componentStack);
+            throw new SyntaxError(
+                \sprintf(
+                    'Expected closing tag </twig:%s> but reached end of input.',
+                    $last['isBlock'] ? 'block' : $last['name'],
+                ),
+                $this->line,
+            );
+        }
+
         return $output;
+    }
+
+    private function handleClosingTag(): string
+    {
+        $closingName = $this->consumeComponentName();
+        $this->expectAndConsumeChar('>');
+
+        if (empty($this->componentStack)) {
+            throw new SyntaxError(
+                \sprintf('Unexpected closing tag </twig:%s>.', $closingName),
+                $this->line,
+            );
+        }
+
+        $last = array_pop($this->componentStack);
+
+        if ($closingName === 'block') {
+            if (!$last['isBlock']) {
+                throw new SyntaxError(
+                    \sprintf('Unexpected </twig:block>: expected </twig:%s>.', $last['name']),
+                    $this->line,
+                );
+            }
+            return '{% endblock %}';
+        }
+
+        if ($last['isBlock'] || $last['name'] !== $closingName) {
+            throw new SyntaxError(
+                \sprintf(
+                    'Expected closing tag </twig:%s> but found </twig:%s>.',
+                    $last['isBlock'] ? 'block' : $last['name'],
+                    $closingName,
+                ),
+                $this->line,
+            );
+        }
+
+        return ($last['hasDefaultBlock'] ? '{% endblock %}' : '') . '{% endembed %}';
+    }
+
+    private function handleOpeningTag(): string
+    {
+        $name = $this->consumeComponentName();
+
+        if ($name === 'block') {
+            return $this->handleNamedSlot();
+        }
+
+        $attrs = $this->consumeAttributes($name);
+
+        if ($this->consume('/>')) {
+            $output = $this->maybeOpenDefaultBlock();
+            $output .= $attrs !== ''
+                ? \sprintf("{{ component('%s', { %s }) }}", $name, $attrs)
+                : \sprintf("{{ component('%s', {}) }}", $name);
+            return $output;
+        }
+
+        // Non-self-closing opening tag
+        $this->expectAndConsumeChar('>');
+
+        $output = $this->maybeOpenDefaultBlock();
+        $template = $this->resolveEmbedTemplate($name);
+        $output .= $attrs !== ''
+            ? \sprintf("{%% embed '%s' with { %s } only %%}", $template, $attrs)
+            : \sprintf("{%% embed '%s' only %%}", $template);
+
+        $this->componentStack[] = ['name' => $name, 'hasDefaultBlock' => false, 'isBlock' => false];
+
+        return $output;
+    }
+
+    private function handleNamedSlot(): string
+    {
+        if (empty($this->componentStack)) {
+            throw new SyntaxError(
+                '<twig:block> is only valid inside a non-self-closing component.',
+                $this->line,
+            );
+        }
+
+        // Only "name" is supported on <twig:block>
+        $this->consumeWhitespace();
+        if (!preg_match('/\Gname\b/', $this->input, $m, 0, $this->position)) {
+            throw new SyntaxError('<twig:block> requires a "name" attribute.', $this->line);
+        }
+        $this->position += \strlen($m[0]);
+        $this->expectAndConsumeChar('=');
+        $quote = $this->consumeChar(['"', "'"]);
+        $blockName = $this->consumeUntil($quote);
+        $this->expectAndConsumeChar($quote);
+        $this->consumeWhitespace();
+        $this->expectAndConsumeChar('>');
+
+        // Close the open default block on the parent component if there is one
+        $top = &$this->componentStack[\count($this->componentStack) - 1];
+        $output = '';
+        if (!$top['isBlock'] && $top['hasDefaultBlock']) {
+            $top['hasDefaultBlock'] = false;
+            $output .= '{% endblock %}';
+        }
+
+        $output .= \sprintf('{%% block %s %%}', $blockName);
+        $this->componentStack[] = ['name' => $blockName, 'hasDefaultBlock' => false, 'isBlock' => true];
+
+        return $output;
+    }
+
+    /**
+     * If directly inside a component (not a named slot) without an open default block, open one.
+     */
+    private function maybeOpenDefaultBlock(): string
+    {
+        if (empty($this->componentStack)) {
+            return '';
+        }
+        $top = &$this->componentStack[\count($this->componentStack) - 1];
+        if (!$top['isBlock'] && !$top['hasDefaultBlock']) {
+            $top['hasDefaultBlock'] = true;
+            return '{% block content %}';
+        }
+        return '';
+    }
+
+    private function resolveEmbedTemplate(string $name): string
+    {
+        $pascal = str_replace(' ', '', ucwords(str_replace('-', ' ', $name)));
+
+        return '@' . $this->config->loaderNamespace . '/' . $pascal . $this->config->templateExtension;
     }
 
     private function consumeComponentName(): string
@@ -103,7 +249,6 @@ final class PreLexer
                 break;
             }
 
-            // :prop="expr" — dynamic prop: value is emitted as a raw Twig expression
             $isDynamic = $this->consume(':');
 
             if (!preg_match('/\G[a-zA-Z][a-zA-Z0-9-]*/', $this->input, $matches, 0, $this->position)) {
@@ -128,7 +273,6 @@ final class PreLexer
                 $this->expectAndConsumeChar($quote);
                 $parts[] = \sprintf('%s: %s', $key, $value !== '' ? $value : "''");
             } else {
-                // Boolean prop: bare attribute with no value → true
                 $parts[] = \sprintf('%s: true', $key);
             }
 
@@ -157,7 +301,6 @@ final class PreLexer
                     $parts[] = \sprintf("'%s'", str_replace("'", "\\'", $current));
                     $current = '';
                 }
-
                 $this->consume('{{');
                 $this->consumeWhitespace();
                 $expr = rtrim($this->consumeUntil('}}'));
@@ -178,22 +321,15 @@ final class PreLexer
         return implode(' ~ ', $parts);
     }
 
-    /**
-     * If the input at the current position starts with $string, advance past it and return true.
-     */
     private function consume(string $string): bool
     {
         if (str_starts_with(substr($this->input, $this->position), $string)) {
             $this->position += \strlen($string);
             return true;
         }
-
         return false;
     }
 
-    /**
-     * Consume exactly one character, optionally asserting it is one of $valid.
-     */
     private function consumeChar(array|string|null $valid = null): string
     {
         if ($this->position >= $this->length) {
@@ -210,13 +346,9 @@ final class PreLexer
         }
 
         ++$this->position;
-
         return $char;
     }
 
-    /**
-     * Advance until $needle is found. Returns consumed text; position stops just before $needle.
-     */
     private function consumeUntil(string $needle): string
     {
         $pos = strpos($this->input, $needle, $this->position);
@@ -259,9 +391,6 @@ final class PreLexer
         ++$this->position;
     }
 
-    /**
-     * Peek at the current position without advancing.
-     */
     private function check(string $string): bool
     {
         return $this->position + \strlen($string) <= $this->length
