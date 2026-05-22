@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TwigComponents;
 
+use Twig\Environment;
 use Twig\Extension\AbstractExtension;
+use Twig\Markup;
 use Twig\TwigFunction;
 
 final class ComponentExtension extends AbstractExtension
@@ -16,7 +18,7 @@ final class ComponentExtension extends AbstractExtension
         return [
             new TwigFunction(
                 'component',
-                fn(\Twig\Environment $env, string $name, array $props = []) => $this->renderer->render($env, $name, $props),
+                fn(Environment $env, string $name, array $props = []): Markup => $this->renderer->render($env, $name, $props),
                 ['needs_environment' => true, 'is_safe' => ['html']],
             ),
         ];

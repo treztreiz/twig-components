@@ -4,19 +4,28 @@ declare(strict_types=1);
 
 namespace TwigComponents;
 
+use RuntimeException;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use Twig\Markup;
 
 final readonly class ComponentRenderer
 {
     public function __construct(private ComponentConfig $config) {}
 
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
     public function render(Environment $twig, string $name, array $props = []): Markup
     {
         $templateName = $this->resolveTemplateName($name);
 
         if (!$twig->getLoader()->exists($templateName)) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf("Component '%s': template '%s' not found.", $name, $templateName)
             );
         }
@@ -27,8 +36,8 @@ final readonly class ComponentRenderer
     private function resolveTemplateName(string $name): string
     {
         // kebab-case → PascalCase: my-card → MyCard
-        $pascal = str_replace(' ', '', ucwords(str_replace('-', ' ', $name)));
+        $pascalCaseName = str_replace(' ', '', ucwords(str_replace('-', ' ', $name)));
 
-        return '@' . $this->config->loaderNamespace . '/' . $pascal . $this->config->templateExtension;
+        return '@' . $this->config->loaderNamespace . '/' . $pascalCaseName . $this->config->templateExtension;
     }
 }

@@ -4,20 +4,26 @@ declare(strict_types=1);
 
 namespace TwigComponents;
 
+use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
 use Twig\Loader\LoaderInterface;
 use Twig\Source;
 
 /**
  * Loader decorator that runs the PreLexer on every template source before
- * Twig tokenises it. All other loader responsibilities are delegated.
+ * Twig tokenizes it. All other loader responsibilities are delegated.
  */
-final class PreLexerLoader implements LoaderInterface
+final readonly class PreLexerLoader implements LoaderInterface
 {
     public function __construct(
-        private readonly LoaderInterface $inner,
-        private readonly PreLexer $preLexer,
+        private LoaderInterface $inner,
+        private PreLexer $preLexer,
     ) {}
 
+    /**
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
     public function getSourceContext(string $name): Source
     {
         $source = $this->inner->getSourceContext($name);
