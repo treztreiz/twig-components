@@ -10,6 +10,7 @@ use Twig\Extension\AbstractExtension;
 use Twig\Markup;
 use Twig\Runtime\EscaperRuntime;
 use Twig\TwigFunction;
+use TwigComponents\Twig\PropsTokenParser;
 
 final class ComponentExtension extends AbstractExtension
 {
@@ -26,6 +27,11 @@ final class ComponentExtension extends AbstractExtension
     {
         $twig->addExtension(new self($renderer));
         $twig->getRuntime(EscaperRuntime::class)->addSafeClass(ComponentAttributes::class, ['html']);
+    }
+
+    public function getTokenParsers(): array
+    {
+        return [new PropsTokenParser()];
     }
 
     public function getFunctions(): array
