@@ -237,9 +237,12 @@ final class PreLexer
 
     private function resolveEmbedTemplate(string $name): string
     {
-        $pascal = str_replace(' ', '', ucwords(str_replace('-', ' ', $name)));
+        $path = implode('/', array_map(
+            static fn (string $s) => str_replace(' ', '', ucwords(str_replace('-', ' ', $s))),
+            explode(':', $name),
+        ));
 
-        return '@' . $this->config->loaderNamespace . '/' . $pascal . $this->config->templateExtension;
+        return '@' . $this->config->loaderNamespace . '/' . $path . $this->config->templateExtension;
     }
 
     /**
@@ -247,7 +250,7 @@ final class PreLexer
      */
     private function consumeComponentName(): string
     {
-        if (preg_match('/\G[a-z][a-z0-9-]*/', $this->input, $matches, 0, $this->position)) {
+        if (preg_match('/\G[a-z][a-z0-9-]*(?::[a-z][a-z0-9-]*)*/', $this->input, $matches, 0, $this->position)) {
             $this->position += strlen($matches[0]);
             return $matches[0];
         }

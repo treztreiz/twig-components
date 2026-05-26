@@ -295,4 +295,37 @@ final class PreLexerTest extends TestCase
 
         self::assertSame("{{ component('input', { type: 'text', disabled: true, value: val }) }}", $result);
     }
+
+    // --- subdirectory components ---
+
+    public function test_namespaced_self_closing(): void
+    {
+        $result = $this->preLexer->transform('<twig:ui:alert message="Hi" />');
+
+        self::assertSame("{{ component('ui:alert', { message: 'Hi' }) }}", $result);
+    }
+
+    public function test_namespaced_non_self_closing(): void
+    {
+        $result = $this->preLexer->transform('<twig:ui:card><p>content</p></twig:ui:card>');
+
+        self::assertSame(
+            "{% embed '@components/Ui/Card.html.twig' with component_embed_vars({}) only %}{% block content %}<p>content</p>{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function test_deeply_namespaced_self_closing(): void
+    {
+        $result = $this->preLexer->transform('<twig:ui:form:input />');
+
+        self::assertSame("{{ component('ui:form:input', {}) }}", $result);
+    }
+
+    public function test_namespaced_kebab_segments(): void
+    {
+        $result = $this->preLexer->transform('<twig:my-ui:form-input />');
+
+        self::assertSame("{{ component('my-ui:form-input', {}) }}", $result);
+    }
 }

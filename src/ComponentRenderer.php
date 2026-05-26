@@ -39,9 +39,11 @@ final readonly class ComponentRenderer
 
     private function resolveTemplateName(string $name): string
     {
-        // kebab-case → PascalCase: my-card → MyCard
-        $pascalCaseName = str_replace(' ', '', ucwords(str_replace('-', ' ', $name)));
+        $path = implode('/', array_map(
+            static fn (string $s) => str_replace(' ', '', ucwords(str_replace('-', ' ', $s))),
+            explode(':', $name),
+        ));
 
-        return '@' . $this->config->loaderNamespace . '/' . $pascalCaseName . $this->config->templateExtension;
+        return '@' . $this->config->loaderNamespace . '/' . $path . $this->config->templateExtension;
     }
 }

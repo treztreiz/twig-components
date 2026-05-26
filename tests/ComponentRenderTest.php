@@ -94,4 +94,11 @@ final class ComponentRenderTest extends TestCase
         self::assertStringContainsString('id="main"', $result);
         self::assertStringContainsString('class="highlight"', $result);
     }
+
+    public function test_namespaced_component_resolves_to_subdirectory(): void
+    {
+        $result = $this->twig->render('ui-alert-page.html.twig');
+
+        self::assertSame('<div class="ui-alert">Hello!</div>', trim($result));
+    }
 }
