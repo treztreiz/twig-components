@@ -97,11 +97,11 @@ final class PreLexerTest extends TestCase
 
     public function test_twig_interpolation_only_in_value(): void
     {
-        // Value is entirely a Twig expression — no static prefix/suffix
+        // Pure {{ expr }} — equivalent to :message="name" (dynamic prop shortcut)
         $result = $this->preLexer->transform('<twig:alert message="{{ name }}" />');
 
         self::assertSame(
-            "{{ component('alert', { message: (name) }) }}",
+            "{{ component('alert', { message: name }) }}",
             $result,
         );
     }
@@ -265,12 +265,12 @@ final class PreLexerTest extends TestCase
         self::assertSame("{{ component('button', { variant: 'primary', href: url }) }}", $result);
     }
 
-    public function test_dynamic_prop_without_equals_throws(): void
+    public function test_dynamic_prop_shorthand(): void
     {
-        $this->expectException(SyntaxError::class);
+        // :foo alone passes the variable named foo — equivalent to :foo="foo"
+        $result = $this->preLexer->transform('<twig:button :disabled />');
 
-        // :prop without = is invalid
-        $this->preLexer->transform('<twig:button :disabled />');
+        self::assertSame("{{ component('button', { disabled: disabled }) }}", $result);
     }
 
     // --- boolean props ---

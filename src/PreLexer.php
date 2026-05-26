@@ -284,11 +284,16 @@ final class PreLexer
             $this->position += strlen($key);
 
             if ($isDynamic) {
-                $this->expectAndConsumeChar('=');
-                $quote = $this->consumeChar(['"', "'"]);
-                $expr = $this->consumeUntil($quote);
-                $this->expectAndConsumeChar($quote);
-                $parts[] = sprintf('%s: %s', $key, $expr !== '' ? $expr : 'null');
+                if (!$this->check('=')) {
+                    // :foo shorthand — passes the variable named $key
+                    $parts[] = sprintf('%s: %s', $key, $key);
+                } else {
+                    $this->expectAndConsumeChar('=');
+                    $quote = $this->consumeChar(['"', "'"]);
+                    $expr = $this->consumeUntil($quote);
+                    $this->expectAndConsumeChar($quote);
+                    $parts[] = sprintf('%s: %s', $key, $expr !== '' ? $expr : 'null');
+                }
             } elseif ($this->check('=')) {
                 $this->expectAndConsumeChar('=');
                 $quote = $this->consumeChar(['"', "'"]);
@@ -340,6 +345,11 @@ final class PreLexer
 
         if ($current !== '') {
             $parts[] = sprintf("'%s'", str_replace("'", "\\'", $current));
+        }
+
+        // Pure single interpolation: treat as dynamic expression, same as :prop="expr"
+        if (count($parts) === 1 && str_starts_with($parts[0], '(') && str_ends_with($parts[0], ')')) {
+            return substr($parts[0], 1, -1);
         }
 
         return implode(' ~ ', $parts);
