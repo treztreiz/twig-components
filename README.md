@@ -79,6 +79,7 @@ src/
 ```
 
 Component names are resolved as `PascalCase`: `<twig:my-card />` → `MyCard.html.twig`.
+Use colons as directory separators: `<twig:ui:alert />` → `components/Ui/Alert.html.twig`.
 
 > **Cache note:** Twig only rechecks template freshness when `auto_reload` is enabled. Without it, editing a component template won't take effect until the compiled cache is cleared. Enable `auto_reload` in development; in production, clear `cache/` on deploy.
 
@@ -137,11 +138,49 @@ Bare attribute names map to `true`:
 <twig:input disabled readonly />
 ```
 
+### Subdirectory components
+
+Use colons to reference components nested in subdirectories:
+
+```html
+<twig:ui:alert message="Saved!" />
+<twig:ui:form:input type="email" />
+```
+
+`<twig:ui:alert />` → `components/Ui/Alert.html.twig`. Kebab segments work too:
+`<twig:my-ui:form-input />` → `components/MyUi/FormInput.html.twig`.
+
 ### Twig interpolation in static values
 
 ```html
 <twig:alert message="Hello {{ user.name }}!" />
 ```
+
+---
+
+## Props
+
+Use `{% props %}` inside a component template to declare which variables are
+component-specific props. Declared props are extracted as named variables and
+**automatically stripped from `attrs`**, leaving only the remaining HTML
+attributes for passthrough.
+
+```twig
+{{-- components/Button.html.twig --}}
+{% props label, variant = 'primary' %}
+
+<button class="btn btn--{{ variant }}"{{ attrs }}>{{ label }}</button>
+```
+
+```html
+<twig:button label="Submit" variant="danger" class="mt-4" id="my-btn" />
+{{-- renders: <button class="btn btn--danger" class="mt-4" id="my-btn">Submit</button> --}}
+```
+
+- Props with a default value (`variant = 'primary'`) are optional.
+- Props without a default are required — a missing required prop throws a
+  `RuntimeError` at render time.
+- `attrs` will only contain the non-prop attributes (`class`, `id`, `data-*`, etc.).
 
 ---
 
@@ -220,6 +259,8 @@ Standard `{% block %}` syntax still works and is unchanged.
 | Attribute passthrough (`attrs`)             | Yes                       | Yes                                      |
 | Dynamic props (`:prop="expr"`)              | Yes                       | Yes                                      |
 | Boolean props                               | Yes                       | Yes                                      |
+| `{% props %}` tag                           | Yes                       | Yes                                      |
+| Subdirectory components (`ui:card`)         | Yes                       | Yes                                      |
 | LiveComponent (reactive, JS binding)        | No                        | Yes (separate package)                   |
 | Stimulus / Turbo integration                | No                        | Yes                                      |
 | Works without Composer autoloading magic    | Yes                       | No                                       |
