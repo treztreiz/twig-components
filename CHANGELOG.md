@@ -9,6 +9,8 @@ Releases are published via git tags and synced to
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-06-04
+
 ### Fixed
 
 - Dashed attribute names (`data-*`, `aria-*`, etc.) now compile to quoted Twig
@@ -61,7 +63,8 @@ Initial release.
   compiled templates when the output format changes.
 - MIT license, php-cs-fixer config, and PHPStan at level 8.
 
-[Unreleased]: https://github.com/treztreiz/twig-components/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/treztreiz/twig-components/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/treztreiz/twig-components/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/treztreiz/twig-components/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/treztreiz/twig-components/compare/v1.0.1...v1.2.0
 [1.0.1]: https://github.com/treztreiz/twig-components/compare/v1.0.0...v1.0.1

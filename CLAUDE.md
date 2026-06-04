@@ -97,3 +97,17 @@ transformed string output; `ComponentRenderTest`/`PropsTest`/
 - `declare(strict_types=1)` everywhere; classes are `final` (and `readonly` where
   applicable). PSR-12 + risky rules, single quotes, alpha-ordered imports — all
   enforced by `.php-cs-fixer.php`.
+
+## Releases & changelog
+
+This package is consumed via git tags synced to Packagist — there is no `version`
+field in `composer.json` (Packagist derives it from tags). `CHANGELOG.md` follows
+[Keep a Changelog](https://keepachangelog.com) + SemVer.
+
+Every change lands under an `## [Unreleased]` section grouped by
+`Added`/`Changed`/`Fixed`/`Documentation`. To cut a release:
+
+1. Pick the SemVer bump from what's in Unreleased (new feature → minor, fix-only → patch).
+2. Rename `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD` and add a fresh empty Unreleased above it.
+3. Update the compare links at the bottom (add the new tag, repoint `[Unreleased]`).
+4. Commit, then `git tag vX.Y.Z` and push both `main` and the tag (`git push origin main --tags`).
