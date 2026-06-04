@@ -47,6 +47,23 @@ final class PreLexerTest extends TestCase
         self::assertSame("{{ component('my-card', { title: 'Hello' }) }}", $result);
     }
 
+    public function test_dashed_attribute_names_become_string_keys(): void
+    {
+        $result = $this->preLexer->transform('<twig:input data-id="42" aria-label="Name" required />');
+
+        self::assertSame(
+            "{{ component('input', { 'data-id': '42', 'aria-label': 'Name', required: true }) }}",
+            $result,
+        );
+    }
+
+    public function test_dashed_dynamic_attribute_name_becomes_string_key(): void
+    {
+        $result = $this->preLexer->transform('<twig:input :data-count="total" />');
+
+        self::assertSame("{{ component('input', { 'data-count': total }) }}", $result);
+    }
+
     public function test_single_quote_in_prop_value_is_escaped(): void
     {
         $result = $this->preLexer->transform('<twig:alert message="it\'s fine" />');

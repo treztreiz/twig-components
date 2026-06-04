@@ -283,31 +283,47 @@ final class PreLexer
             $key = $matches[0];
             $this->position += strlen($key);
 
+            $hashKey = $this->formatHashKey($key);
+
             if ($isDynamic) {
                 if (!$this->check('=')) {
                     // :foo shorthand — passes the variable named $key
-                    $parts[] = sprintf('%s: %s', $key, $key);
+                    $parts[] = sprintf('%s: %s', $hashKey, $key);
                 } else {
                     $this->expectAndConsumeChar('=');
                     $quote = $this->consumeChar(['"', "'"]);
                     $expr = $this->consumeUntil($quote);
                     $this->expectAndConsumeChar($quote);
-                    $parts[] = sprintf('%s: %s', $key, $expr !== '' ? $expr : 'null');
+                    $parts[] = sprintf('%s: %s', $hashKey, $expr !== '' ? $expr : 'null');
                 }
             } elseif ($this->check('=')) {
                 $this->expectAndConsumeChar('=');
                 $quote = $this->consumeChar(['"', "'"]);
                 $value = $this->consumeAttributeValue($quote);
                 $this->expectAndConsumeChar($quote);
-                $parts[] = sprintf('%s: %s', $key, $value !== '' ? $value : "''");
+                $parts[] = sprintf('%s: %s', $hashKey, $value !== '' ? $value : "''");
             } else {
-                $parts[] = sprintf('%s: true', $key);
+                $parts[] = sprintf('%s: true', $hashKey);
             }
 
             $this->consumeWhitespace();
         }
 
         return implode(', ', $parts);
+    }
+
+    /**
+     * Formats an attribute name as a Twig hash key. Bare names like a Twig
+     * identifier are left unquoted; anything else (e.g. data-* / aria-*, where
+     * the dash would otherwise parse as subtraction) is emitted as a string key.
+     */
+    private function formatHashKey(string $key): string
+    {
+        if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $key)) {
+            return $key;
+        }
+
+        return sprintf("'%s'", str_replace("'", "\\'", $key));
     }
 
     /**
