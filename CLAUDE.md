@@ -105,12 +105,14 @@ This package is consumed via git tags synced to Packagist. The `version` field i
 any tag whose `composer.json` version differs from the tag name. `CHANGELOG.md`
 follows [Keep a Changelog](https://keepachangelog.com) + SemVer.
 
-Every change lands under an `## [Unreleased]` section grouped by
-`Added`/`Changed`/`Fixed`/`Documentation`. To cut a release `vX.Y.Z`:
+Tags are **v-less** (`1.3.2`, not `v1.3.2`) so the git tag matches the
+Packagist-displayed version. Every change lands under an `## [Unreleased]`
+section grouped by `Added`/`Changed`/`Fixed`/`Documentation`. To cut a release
+`X.Y.Z`:
 
 1. Pick the SemVer bump from what's in Unreleased (new feature → minor, fix-only → patch).
-2. Set `"version": "X.Y.Z"` in `composer.json` (must equal the tag, no `v` prefix).
+2. Set `"version": "X.Y.Z"` in `composer.json` (must equal the tag).
 3. Rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` and add a fresh empty Unreleased above it.
 4. Update the compare links at the bottom (add the new tag, repoint `[Unreleased]`).
-5. Commit, then `git tag vX.Y.Z` and push: `git push origin main && git push origin vX.Y.Z`
+5. Commit, then `git tag X.Y.Z` and push: `git push origin main && git push origin X.Y.Z`
    (lightweight tags are not carried by `--follow-tags`).

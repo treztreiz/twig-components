@@ -63,9 +63,9 @@ Initial release.
   compiled templates when the output format changes.
 - MIT license, php-cs-fixer config, and PHPStan at level 8.
 
-[Unreleased]: https://github.com/treztreiz/twig-components/compare/v1.3.1...HEAD
-[1.3.1]: https://github.com/treztreiz/twig-components/compare/v1.3.0...v1.3.1
-[1.3.0]: https://github.com/treztreiz/twig-components/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/treztreiz/twig-components/compare/v1.0.1...v1.2.0
-[1.0.1]: https://github.com/treztreiz/twig-components/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/treztreiz/twig-components/releases/tag/v1.0.0
+[Unreleased]: https://github.com/treztreiz/twig-components/compare/1.3.1...HEAD
+[1.3.1]: https://github.com/treztreiz/twig-components/compare/1.3.0...1.3.1
+[1.3.0]: https://github.com/treztreiz/twig-components/compare/1.2.0...1.3.0
+[1.2.0]: https://github.com/treztreiz/twig-components/compare/1.0.1...1.2.0
+[1.0.1]: https://github.com/treztreiz/twig-components/compare/1.0.0...1.0.1
+[1.0.0]: https://github.com/treztreiz/twig-components/releases/tag/1.0.0
