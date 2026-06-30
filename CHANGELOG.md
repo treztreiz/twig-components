@@ -9,6 +9,8 @@ Releases are published via git tags and synced to
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-30
+
 ### Added
 
 - `context` opt-in flag — adding the bare `context` attribute to a component
@@ -72,7 +74,8 @@ Initial release.
   compiled templates when the output format changes.
 - MIT license, php-cs-fixer config, and PHPStan at level 8.
 
-[Unreleased]: https://github.com/treztreiz/twig-components/compare/1.3.1...HEAD
+[Unreleased]: https://github.com/treztreiz/twig-components/compare/1.4.0...HEAD
+[1.4.0]: https://github.com/treztreiz/twig-components/compare/1.3.1...1.4.0
 [1.3.1]: https://github.com/treztreiz/twig-components/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/treztreiz/twig-components/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/treztreiz/twig-components/compare/1.0.1...1.2.0
