@@ -101,4 +101,42 @@ final class ComponentRenderTest extends TestCase
 
         self::assertSame('<div class="ui-alert">Hello!</div>', trim($result));
     }
+
+    // --- context opt-in ---
+
+    public function test_context_flag_exposes_parent_scope_self_closing(): void
+    {
+        $result = $this->twig->render('context-probe-page.html.twig', ['foo' => 'page-foo']);
+
+        self::assertStringContainsString('foo=page-foo', $result);
+    }
+
+    public function test_context_is_stripped_from_attrs_bag(): void
+    {
+        $result = $this->twig->render('context-probe-page.html.twig', ['foo' => 'page-foo']);
+
+        // The real attr survives, the reserved `context` key never leaks into {{ attrs }}.
+        self::assertStringContainsString('attrs=[ class="x"]', $result);
+        self::assertStringNotContainsString('context=', $result);
+    }
+
+    public function test_context_flag_exposes_parent_scope_slotted(): void
+    {
+        $result = $this->twig->render('context-card-page.html.twig', ['foo' => 'embed-foo']);
+
+        self::assertStringContainsString('<p>hi</p>', $result);
+        self::assertStringContainsString('foo=embed-foo', $result);
+    }
+
+    public function test_context_bag_is_flat_and_nearer_scope_wins_at_depth(): void
+    {
+        $result = $this->twig->render('context-depth-page.html.twig', [
+            'g' => 'from-G',
+            'shared' => 'G-shared',
+        ]);
+
+        // grandparent value merged up, parent value present, nearer wins on collision,
+        // and the bag never nests (no context.context).
+        self::assertSame('g=from-G;p=from-P;shared=P-shared;nested=no', trim($result));
+    }
 }

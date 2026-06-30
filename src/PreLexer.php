@@ -283,6 +283,19 @@ final class PreLexer
             $key = $matches[0];
             $this->position += strlen($key);
 
+            // `context` is a reserved bare flag that opts into parent-context access.
+            // It is rewritten to `context: _context` below; a value has nowhere to go.
+            if ($key === 'context' && ($isDynamic || $this->check('='))) {
+                throw new SyntaxError(
+                    sprintf(
+                        'The "context" attribute on "<twig:%s>" is reserved and cannot take a value or be dynamic; use it as a bare flag (<twig:%s context>) to expose the parent context.',
+                        $componentName,
+                        $componentName,
+                    ),
+                    $this->line,
+                );
+            }
+
             $hashKey = $this->formatHashKey($key);
 
             if ($isDynamic) {
@@ -302,6 +315,9 @@ final class PreLexer
                 $value = $this->consumeAttributeValue($quote);
                 $this->expectAndConsumeChar($quote);
                 $parts[] = sprintf('%s: %s', $hashKey, $value !== '' ? $value : "''");
+            } elseif ($key === 'context') {
+                // Bare opt-in flag → expose the parent scope as the `context` bag.
+                $parts[] = 'context: _context';
             } else {
                 $parts[] = sprintf('%s: true', $hashKey);
             }

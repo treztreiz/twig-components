@@ -16,7 +16,7 @@ use Twig\Source;
 final readonly class PreLexerLoader implements LoaderInterface
 {
     /** Bump when PreLexer output format changes to bust the compiled-template cache. */
-    private const string CACHE_KEY_VERSION = 'v1';
+    private const string CACHE_KEY_VERSION = 'v2';
 
     public function __construct(
         private LoaderInterface $inner,

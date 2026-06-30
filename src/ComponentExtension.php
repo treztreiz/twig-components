@@ -44,7 +44,7 @@ final class ComponentExtension extends AbstractExtension
             ),
             new TwigFunction(
                 'component_embed_vars',
-                static fn (array $props): array => array_merge($props, ['attrs' => new ComponentAttributes($props)]),
+                static fn (array $props): array => ComponentRenderer::prepareProps($props),
             ),
         ];
     }

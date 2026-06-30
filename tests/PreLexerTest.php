@@ -345,4 +345,54 @@ final class PreLexerTest extends TestCase
 
         self::assertSame("{{ component('my-ui:form-input', {}) }}", $result);
     }
+
+    // --- context opt-in flag ---
+
+    public function test_context_flag_self_closing_injects_parent_context(): void
+    {
+        $result = $this->preLexer->transform('<twig:card context />');
+
+        self::assertSame("{{ component('card', { context: _context }) }}", $result);
+    }
+
+    public function test_context_flag_alongside_other_props(): void
+    {
+        $result = $this->preLexer->transform('<twig:card title="Hi" context />');
+
+        self::assertSame("{{ component('card', { title: 'Hi', context: _context }) }}", $result);
+    }
+
+    public function test_context_flag_slotted_injects_parent_context(): void
+    {
+        $result = $this->preLexer->transform('<twig:card context><p>x</p></twig:card>');
+
+        self::assertSame(
+            "{% embed '@components/Card.html.twig' with component_embed_vars({ context: _context }) only %}{% block content %}<p>x</p>{% endblock %}{% endembed %}",
+            $result,
+        );
+    }
+
+    public function test_context_with_static_value_throws(): void
+    {
+        $this->expectException(SyntaxError::class);
+        $this->expectExceptionMessageMatches('/"context".*reserved.*cannot take a value/');
+
+        $this->preLexer->transform('<twig:card context="x" />');
+    }
+
+    public function test_context_dynamic_shorthand_throws(): void
+    {
+        $this->expectException(SyntaxError::class);
+        $this->expectExceptionMessageMatches('/"context".*reserved/');
+
+        $this->preLexer->transform('<twig:card :context />');
+    }
+
+    public function test_context_dynamic_value_throws(): void
+    {
+        $this->expectException(SyntaxError::class);
+        $this->expectExceptionMessageMatches('/"context".*reserved/');
+
+        $this->preLexer->transform('<twig:card :context="foo" />');
+    }
 }

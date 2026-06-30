@@ -156,6 +156,30 @@ Use colons to reference components nested in subdirectories:
 <twig:alert message="Hello {{ user.name }}!" />
 ```
 
+### Parent context access
+
+Components are isolated by default — they only see the props you pass. Add the
+bare `context` flag to opt a component into reading its **parent's** scope
+through a single `context` bag:
+
+```html
+<twig:sidebar context />
+<twig:card context>…</twig:card>
+```
+
+```twig
+{{-- components/Sidebar.html.twig --}}
+<aside>Welcome back, {{ context.currentUser.name }}</aside>
+```
+
+- The bag is **flat and one level deep** — even through nested opted-in
+  components you always reach `context.foo`, never `context.context.foo`.
+  Values from a closer ancestor win over a more distant one with the same name.
+- `context` is a **reserved bare flag**. It takes no value: `context="x"`,
+  `:context` and `:context="x"` all throw a `SyntaxError`. A component therefore
+  cannot receive a prop literally named `context`.
+- The flag only exposes the parent scope; it never leaks into `{{ attrs }}`.
+
 ---
 
 ## Props

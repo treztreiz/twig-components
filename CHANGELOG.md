@@ -9,6 +9,15 @@ Releases are published via git tags and synced to
 
 ## [Unreleased]
 
+### Added
+
+- `context` opt-in flag — adding the bare `context` attribute to a component
+  exposes the parent scope as a flat `context` bag (`{{ context.foo }}`).
+  The bag is always one level deep (no `context.context` nesting), nearer
+  scopes win on name collisions, and `context` never leaks into `{{ attrs }}`.
+  `context` is reserved: passing a value (`context="x"`, `:context`,
+  `:context="x"`) throws a `SyntaxError`.
+
 ## [1.3.1] - 2026-06-04
 
 ### Fixed
